@@ -30,7 +30,7 @@ news_count = int(input("Input the number of news items to scrape:"))
 
 # 設定網站和ChromeDriver路徑
 website = f"https://finance.yahoo.com/quote/{target_stock}/news/"
-path = "/Users/wangyichao/chromedriver-mac-arm64-3/chromedriver"
+path = "/path/to/your/chromedriver/"
 
 # 建立Service物件並傳入ChromeDriver路徑
 service = Service(executable_path=path)
