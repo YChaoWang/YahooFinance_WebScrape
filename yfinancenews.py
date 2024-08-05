@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 from tqdm import tqdm
 import json
+import os
 
 
 def scroll_to_bottom(driver):
@@ -25,18 +26,28 @@ def wait_for_new_elements(driver, previous_count):
     )
 
 
-target_stock = input("Input the stock name:").upper()
-news_count = int(input("Input the number of news items to scrape:"))
+try:
+    target_stock = input("Input the stock name:").upper()
+    news_count = int(input("Input the number of news items to scrape:"))
+except ValueError:
+    print("Please input a valid number.")
+    exit()
 
 # 設定網站和ChromeDriver路徑
 website = f"https://finance.yahoo.com/quote/{target_stock}/news/"
-path = "/path/to/your/chromedriver/"
+# path = "/path/to/your/chromedriver/"
+path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+
+chrome_options = Options()
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-dev-shm-usage")
 
 # 建立Service物件並傳入ChromeDriver路徑
 service = Service(executable_path=path)
 
 # 初始化Chrome WebDriver並傳入Service物件
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # 開啟網站
 driver.get(website)
