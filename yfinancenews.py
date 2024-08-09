@@ -9,6 +9,8 @@ import json
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
+from newslink import extract_date_from_url
+
 
 def scroll_to_bottom(driver):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -36,8 +38,9 @@ def scrape_news(target_stock, news_count):
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.get(website)
-
+    # https://finance.yahoo.com/video/tsmc-sales-rise-45-ago-140047662.html
     news_title = []
+    upload_timeago = []
     upload_time = []
     news_agencys = []
     news_data = []
@@ -66,11 +69,16 @@ def scrape_news(target_stock, news_count):
                 for news in newses:
                     if len(news_title) >= news_count:
                         break
-
+                    # 標題
                     title = news.find_element(
                         By.XPATH, './/h3[contains(@class, "clamp")]'
                     ).text
                     news_title.append(title)
+                    # 更新時間
+                    news_url = news.find_element(By.XPATH, ".//a").get_attribute("href")
+                    time = extract_date_from_url(news_url)
+                    upload_time.append(time)
+                    # 新聞來源
                     publishing_info = news.find_element(
                         By.XPATH,
                         './/div/div[contains(@class, "footer")]/div[contains(@class, "publishing")]',
@@ -78,13 +86,15 @@ def scrape_news(target_stock, news_count):
                     parts = publishing_info.split("•")
                     news_agency = parts[0].strip()
                     news_agencys.append(news_agency)
+                    # 幾多久以前
                     time_info = parts[1].strip()
-                    upload_time.append(time_info)
+                    upload_timeago.append(time_info)
 
                     news_item = {
                         "title": title,
                         "news_agency": news_agency,
-                        "time": time_info,
+                        "time_ago": time_info,
+                        "time_update": time,
                     }
                     news_data.append(news_item)
 
@@ -93,7 +103,8 @@ def scrape_news(target_stock, news_count):
 
                     tqdm.write(f"title: {title}")
                     tqdm.write(f"news_agency: {news_agency}")
-                    tqdm.write(f"time: {time_info}")
+                    tqdm.write(f"time_ago: {time_info}")
+                    tqdm.write(f"time_update: {time}")
                     tqdm.write("--------------------------------")
 
                 if len(news_title) < news_count:
